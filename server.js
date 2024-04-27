@@ -7,30 +7,41 @@ import http from "node:http";
 
 installGlobals();
 
-const app = express();
-
-const hmrApp = express();
-const hmrServer = http.createServer(hmrApp);
-hmrApp.use((_req, res, next) => {
-  res.setHeader("cross-origin-resource-policy", "cross-origin");
-  res.setHeader("access-control-allow-origin", "http://localhost:3000");
-  next();
-});
+const port = process.env.PORT || 3000;
+const appOrigin = "http://localhost:${port}";
 
 const viteDevServer =
   process.env.NODE_ENV === "production"
     ? undefined
-    : await import("vite").then((vite) =>
-        vite.createServer({
-          server: { middlewareMode: true, hmr: { server: hmrServer } },
-        })
-      );
+    : await import("vite").then(async (vite) => {
+        // HMR_PORT could be `0` to find a random port, but disadvantage
+        // would be port changing on `server.js` restarts.
+        let port = process.env.HMR_PORT || 24678;
+        const app = express();
+        const server = http.createServer(app);
+        app.use((_req, res, next) => {
+          res.setHeader("cross-origin-resource-policy", "cross-origin");
+          res.setHeader("access-control-allow-origin", appOrigin);
+          next();
+        });
+        port = await new Promise((resolve) =>
+          server.listen(port, () => resolve(server.address().port))
+        );
+        return vite.createServer({
+          server: {
+            middlewareMode: true,
+            hmr: { server, port: port },
+          },
+        });
+      });
 
 const remixHandler = createRequestHandler({
   build: viteDevServer
     ? () => viteDevServer.ssrLoadModule("virtual:remix/server-build")
     : await import("./build/server/index.js"),
 });
+
+const app = express();
 
 app.use(compression());
 
@@ -57,9 +68,6 @@ app.use(morgan("tiny"));
 // handle SSR requests
 app.all("*", remixHandler);
 
-hmrServer.listen(8002);
-
-const port = process.env.PORT || 3000;
 app.listen(port, () =>
-  console.log(`Express server listening at http://localhost:${port}`)
+  console.log(`Express server listening at ${appOrigin}`)
 );

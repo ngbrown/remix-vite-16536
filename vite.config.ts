@@ -10,7 +10,6 @@ export default defineConfig({
       //headers: {
       //  "cross-origin-resource-policy": "cross-origin",
       //}
-      port: 8002,
     },
   },
 });
