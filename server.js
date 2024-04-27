@@ -8,7 +8,7 @@ import http from "node:http";
 installGlobals();
 
 const port = process.env.PORT || 3000;
-const appOrigin = "http://localhost:${port}";
+const appOrigin = `http://localhost:${port}`;
 
 const viteDevServer =
   process.env.NODE_ENV === "production"
@@ -17,12 +17,10 @@ const viteDevServer =
         // HMR_PORT could be `0` to find a random port, but disadvantage
         // would be port changing on `server.js` restarts.
         let port = process.env.HMR_PORT || 24678;
-        const app = express();
-        const server = http.createServer(app);
-        app.use((_req, res, next) => {
+        const server = http.createServer((req, res) => {
           res.setHeader("cross-origin-resource-policy", "cross-origin");
-          res.setHeader("access-control-allow-origin", appOrigin);
-          next();
+          res.writeHead(404);
+          res.end("Not Found");
         });
         port = await new Promise((resolve) =>
           server.listen(port, () => resolve(server.address().port))
