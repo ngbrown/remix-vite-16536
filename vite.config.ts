@@ -4,4 +4,12 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [remix(), tsconfigPaths()],
+  server: {
+    hmr: {
+      // where I want to be able to set headers:
+      //headers: {
+      //  "cross-origin-resource-policy": "cross-origin",
+      //}
+    },
+  },
 });

@@ -2,6 +2,8 @@
 
 📖 See the [Remix docs](https://remix.run/docs) and the [Remix Vite docs](https://remix.run/docs/en/main/guides/vite) for details on supported features.
 
+This is a demonstration of using cross-origin isolation in Vite dev mode. [vitejs/vite-16536](https://github.com/vitejs/vite/issues/16536) is blocking the feature from completely working, specifically on Vite server restart.
+
 ## Development
 
 Run the Express server with Vite dev middleware:
