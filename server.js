@@ -7,28 +7,21 @@ import http from "node:http";
 
 installGlobals();
 
-const port = process.env.PORT || 3000;
-const appOrigin = `http://localhost:${port}`;
-
 const viteDevServer =
   process.env.NODE_ENV === "production"
     ? undefined
-    : await import("vite").then(async (vite) => {
-        // HMR_PORT could be `0` to find a random port, but disadvantage
-        // would be port changing on `server.js` restarts.
+    : await import("vite").then((vite) => {
         let port = process.env.HMR_PORT || 24678;
         const server = http.createServer((req, res) => {
           res.setHeader("cross-origin-resource-policy", "cross-origin");
           res.writeHead(404);
           res.end("Not Found");
         });
-        port = await new Promise((resolve) =>
-          server.listen(port, () => resolve(server.address().port))
-        );
+        server.listen(port);
         return vite.createServer({
           server: {
             middlewareMode: true,
-            hmr: { server, port: port },
+            hmr: { server, port },
           },
         });
       });
@@ -66,6 +59,7 @@ app.use(morgan("tiny"));
 // handle SSR requests
 app.all("*", remixHandler);
 
+const port = process.env.PORT || 3000;
 app.listen(port, () =>
-  console.log(`Express server listening at ${appOrigin}`)
+  console.log(`Express server listening at http://localhost:${port}`)
 );
